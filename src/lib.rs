@@ -15,7 +15,7 @@ use std::collections::HashMap;
 
 /// Enum para representar diferentes tipos de erro que podem ocorrer
 #[derive(Debug, Clone)]
-pub enum FileUtilsError {
+pub enum ArchivusError {
     /// Arquivo ou diretório não encontrado
     NotFound(String),
     /// Permissão negada para acessar arquivo/diretório
@@ -28,26 +28,26 @@ pub enum FileUtilsError {
     InvalidPath(String),
 }
 
-impl std::fmt::Display for FileUtilsError {
+impl std::fmt::Display for ArchivusError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            FileUtilsError::NotFound(msg) => write!(f, "Não encontrado: {}", msg),
-            FileUtilsError::PermissionDenied(msg) => write!(f, "Permissão negada: {}", msg),
-            FileUtilsError::IoError(msg) => write!(f, "Erro de I/O: {}", msg),
-            FileUtilsError::InvalidExtension(msg) => write!(f, "Extensão inválida: {}", msg),
-            FileUtilsError::InvalidPath(msg) => write!(f, "Caminho inválido: {}", msg),
+            ArchivusError::NotFound(msg) => write!(f, "Não encontrado: {}", msg),
+            ArchivusError::PermissionDenied(msg) => write!(f, "Permissão negada: {}", msg),
+            ArchivusError::IoError(msg) => write!(f, "Erro de I/O: {}", msg),
+            ArchivusError::InvalidExtension(msg) => write!(f, "Extensão inválida: {}", msg),
+            ArchivusError::InvalidPath(msg) => write!(f, "Caminho inválido: {}", msg),
         }
     }
 }
 
-impl std::error::Error for FileUtilsError {}
+impl std::error::Error for ArchivusError {}
 
-impl From<io::Error> for FileUtilsError {
+impl From<io::Error> for ArchivusError {
     fn from(error: io::Error) -> Self {
         match error.kind() {
-            io::ErrorKind::NotFound => FileUtilsError::NotFound(error.to_string()),
-            io::ErrorKind::PermissionDenied => FileUtilsError::PermissionDenied(error.to_string()),
-            _ => FileUtilsError::IoError(error.to_string()),
+            io::ErrorKind::NotFound => ArchivusError::NotFound(error.to_string()),
+            io::ErrorKind::PermissionDenied => ArchivusError::PermissionDenied(error.to_string()),
+            _ => ArchivusError::IoError(error.to_string()),
         }
     }
 }
@@ -73,7 +73,7 @@ pub struct FileInfo {
 
 impl FileInfo {
     /// Cria um novo FileInfo a partir de um caminho
-    pub fn new<P: AsRef<Path>>(path: P) -> Result<Self, FileUtilsError> {
+    pub fn new<P: AsRef<Path>>(path: P) -> Result<Self, ArchivusError> {
         let path = path.as_ref();
         let metadata = fs::metadata(path)?;
 
@@ -138,10 +138,10 @@ impl Default for FileFilter {
 // ====================================================================
 
 /// Estrutura principal que contém todos os utilitários de arquivo
-pub struct FileUtils;
+pub struct Archivus;
 
-impl FileUtils {
-    /// Cria uma nova instância de FileUtils
+impl Archivus {
+    /// Cria uma nova instância de Archivus
     pub fn new() -> Self {
         Self
     }
@@ -165,9 +165,9 @@ impl FileUtils {
     ///
     /// # Exemplos
     /// ```rust
-    /// use archivus::FileUtils;
+    /// use archivus::Archivus;
     ///
-    /// let utils = FileUtils::new();
+    /// let utils = Archivus::new();
     ///
     /// // Verifica um arquivo específico
     /// if utils.file_exists("config.json") {
@@ -205,9 +205,9 @@ impl FileUtils {
     ///
     /// # Exemplos
     /// ```rust
-    /// use archivus::FileUtils;
+    /// use archivus::Archivus;
     ///
-    /// let utils = FileUtils::new();
+    /// let utils = Archivus::new();
     ///
     /// // Verifica diretórios do projeto
     /// if utils.directory_exists("src") {
@@ -250,9 +250,9 @@ impl FileUtils {
     ///
     /// # Exemplos
     /// ```rust
-    /// use archivus::FileUtils;
+    /// use archivus::Archivus;
     ///
-    /// let utils = FileUtils::new();
+    /// let utils = Archivus::new();
     ///
     /// // Verifica qualquer tipo de caminho
     /// let items = vec!["README.md", "src", "config.json", "build"];
@@ -293,9 +293,9 @@ impl FileUtils {
     ///
     /// # Exemplos
     /// ```rust
-    /// use archivus::FileUtils;
+    /// use archivus::Archivus;
     ///
-    /// let utils = FileUtils::new();
+    /// let utils = Archivus::new();
     ///
     /// // Verificação simples
     /// if utils.has_extension("documento.pdf", "pdf") {
@@ -341,7 +341,7 @@ impl FileUtils {
     /// # Retorna
     /// * `Ok(true)` - Se o arquivo existe e está vazio (0 bytes)
     /// * `Ok(false)` - Se o arquivo existe e contém dados
-    /// * `Err(FileUtilsError)` - Se houve erro ao acessar o arquivo
+    /// * `Err(ArchivusError)` - Se houve erro ao acessar o arquivo
     ///
     /// # Erros
     /// Esta função pode retornar erro se:
@@ -351,9 +351,9 @@ impl FileUtils {
     ///
     /// # Exemplos
     /// ```rust
-    /// use archivus::FileUtils;
+    /// use archivus::Archivus;
     ///
-    /// let utils = FileUtils::new();
+    /// let utils = Archivus::new();
     ///
     /// // Verificação básica
     /// match utils.is_empty("log.txt") {
@@ -385,7 +385,7 @@ impl FileUtils {
     /// # Dica de Performance
     /// Esta função apenas verifica metadados (não lê o arquivo inteiro),
     /// então é muito rápida mesmo para arquivos grandes.
-    pub fn is_empty<P: AsRef<Path>>(&self, path: P) -> Result<bool, FileUtilsError> {
+    pub fn is_empty<P: AsRef<Path>>(&self, path: P) -> Result<bool, ArchivusError> {
         let metadata = fs::metadata(path)?;
         Ok(metadata.len() == 0)
     }
@@ -405,7 +405,7 @@ impl FileUtils {
     ///
     /// # Retorna
     /// * `Ok(Vec<FileInfo>)` - Lista com informações de todos os arquivos
-    /// * `Err(FileUtilsError)` - Se houve erro ao acessar o diretório
+    /// * `Err(ArchivusError)` - Se houve erro ao acessar o diretório
     ///
     /// # Estrutura FileInfo
     /// Cada arquivo retorna as seguintes informações:
@@ -417,9 +417,9 @@ impl FileUtils {
     ///
     /// # Exemplos
     /// ```rust
-    /// use archivus::FileUtils;
+    /// use archivus::Archivus;
     ///
-    /// let utils = FileUtils::new();
+    /// let utils = Archivus::new();
     ///
     /// // Listar arquivos do diretório atual
     /// match utils.list_files(".") {
@@ -464,7 +464,7 @@ impl FileUtils {
     /// - `list_directories()` - Para listar apenas diretórios
     /// - `list_all()` - Para listar arquivos E diretórios
     /// - `list_with_filter()` - Para busca com critérios específicos
-    pub fn list_files<P: AsRef<Path>>(&self, dir_path: P) -> Result<Vec<FileInfo>, FileUtilsError> {
+    pub fn list_files<P: AsRef<Path>>(&self, dir_path: P) -> Result<Vec<FileInfo>, ArchivusError> {
         let mut files = Vec::new();
 
         for entry in fs::read_dir(dir_path)? {
@@ -490,13 +490,13 @@ impl FileUtils {
     ///
     /// # Retorna
     /// * `Ok(Vec<FileInfo>)` - Lista com informações de todos os subdiretórios
-    /// * `Err(FileUtilsError)` - Se houve erro ao acessar o diretório
+    /// * `Err(ArchivusError)` - Se houve erro ao acessar o diretório
     ///
     /// # Exemplos
     /// ```rust
-    /// use archivus::FileUtils;
+    /// use archivus::Archivus;
     ///
-    /// let utils = FileUtils::new();
+    /// let utils = Archivus::new();
     ///
     /// // Listar subdiretórios do projeto
     /// match utils.list_directories(".") {
@@ -529,7 +529,7 @@ impl FileUtils {
     ///
     /// // Navegação interativa
     /// fn navegar_diretorios(caminho: &str) -> Result<(), Box<dyn std::error::Error>> {
-    ///     let utils = FileUtils::new();
+    ///     let utils = Archivus::new();
     ///     let dirs = utils.list_directories(caminho)?;
     ///     
     ///     println!("Diretórios em '{}':", caminho);
@@ -550,7 +550,7 @@ impl FileUtils {
     /// # Nota Importante
     /// Esta função NÃO é recursiva. Para listar subdiretórios de forma
     /// recursiva, use `list_with_filter()` com `recursive: true`.
-    pub fn list_directories<P: AsRef<Path>>(&self, dir_path: P) -> Result<Vec<FileInfo>, FileUtilsError> {
+    pub fn list_directories<P: AsRef<Path>>(&self, dir_path: P) -> Result<Vec<FileInfo>, ArchivusError> {
         let mut directories = Vec::new();
 
         for entry in fs::read_dir(dir_path)? {
@@ -566,7 +566,7 @@ impl FileUtils {
     }
 
     /// Lista todos os itens (arquivos e diretórios) de um diretório
-    pub fn list_all<P: AsRef<Path>>(&self, dir_path: P) -> Result<Vec<FileInfo>, FileUtilsError> {
+    pub fn list_all<P: AsRef<Path>>(&self, dir_path: P) -> Result<Vec<FileInfo>, ArchivusError> {
         let mut items = Vec::new();
 
         for entry in fs::read_dir(dir_path)? {
@@ -579,7 +579,7 @@ impl FileUtils {
     }
 
     /// Lista arquivos com filtro personalizado
-    pub fn list_with_filter<P: AsRef<Path>>(&self, dir_path: P, filter: &FileFilter) -> Result<Vec<FileInfo>, FileUtilsError> {
+    pub fn list_with_filter<P: AsRef<Path>>(&self, dir_path: P, filter: &FileFilter) -> Result<Vec<FileInfo>, ArchivusError> {
         if filter.recursive {
             self.list_with_filter_recursive(dir_path, filter)
         } else {
@@ -588,7 +588,7 @@ impl FileUtils {
     }
 
     // Implementação não-recursiva
-    fn list_with_filter_simple<P: AsRef<Path>>(&self, dir_path: P, filter: &FileFilter) -> Result<Vec<FileInfo>, FileUtilsError> {
+    fn list_with_filter_simple<P: AsRef<Path>>(&self, dir_path: P, filter: &FileFilter) -> Result<Vec<FileInfo>, ArchivusError> {
         let mut filtered_items = Vec::new();
 
         for entry in fs::read_dir(dir_path)? {
@@ -604,7 +604,7 @@ impl FileUtils {
     }
 
     // Implementação recursiva
-    fn list_with_filter_recursive<P: AsRef<Path>>(&self, dir_path: P, filter: &FileFilter) -> Result<Vec<FileInfo>, FileUtilsError> {
+    fn list_with_filter_recursive<P: AsRef<Path>>(&self, dir_path: P, filter: &FileFilter) -> Result<Vec<FileInfo>, ArchivusError> {
         let mut filtered_items = Vec::new();
 
         for entry in fs::read_dir(dir_path)? {
@@ -671,7 +671,7 @@ impl FileUtils {
     // ================================================================
 
     /// Busca arquivos por nome (com wildcards simples)
-    pub fn find_by_name<P: AsRef<Path>>(&self, dir_path: P, pattern: &str, recursive: bool) -> Result<Vec<FileInfo>, FileUtilsError> {
+    pub fn find_by_name<P: AsRef<Path>>(&self, dir_path: P, pattern: &str, recursive: bool) -> Result<Vec<FileInfo>, ArchivusError> {
         let items = if recursive {
             self.list_with_filter(dir_path, &FileFilter {
                 recursive: true,
@@ -689,7 +689,7 @@ impl FileUtils {
     }
 
     /// Busca arquivos por extensão
-    pub fn find_by_extension<P: AsRef<Path>>(&self, dir_path: P, extension: &str, recursive: bool) -> Result<Vec<FileInfo>, FileUtilsError> {
+    pub fn find_by_extension<P: AsRef<Path>>(&self, dir_path: P, extension: &str, recursive: bool) -> Result<Vec<FileInfo>, ArchivusError> {
         let filter = FileFilter {
             extensions: Some(vec![extension.to_string()]),
             include_directories: false,
@@ -702,7 +702,7 @@ impl FileUtils {
     }
 
     /// Busca arquivos por tamanho
-    pub fn find_by_size<P: AsRef<Path>>(&self, dir_path: P, min_size: Option<u64>, max_size: Option<u64>, recursive: bool) -> Result<Vec<FileInfo>, FileUtilsError> {
+    pub fn find_by_size<P: AsRef<Path>>(&self, dir_path: P, min_size: Option<u64>, max_size: Option<u64>, recursive: bool) -> Result<Vec<FileInfo>, ArchivusError> {
         let filter = FileFilter {
             min_size,
             max_size,
@@ -789,7 +789,7 @@ impl FileUtils {
     ///
     /// # Retorna
     /// * `Ok(String)` - O conteúdo completo do arquivo como String
-    /// * `Err(FileUtilsError)` - Se houve erro ao ler o arquivo
+    /// * `Err(ArchivusError)` - Se houve erro ao ler o arquivo
     ///
     /// # Erros Possíveis
     /// - Arquivo não existe
@@ -800,9 +800,9 @@ impl FileUtils {
     ///
     /// # Exemplos
     /// ```rust
-    /// use archivus::FileUtils;
+    /// use archivus::Archivus;
     ///
-    /// let utils = FileUtils::new();
+    /// let utils = Archivus::new();
     ///
     /// // Leitura básica de arquivo
     /// match utils.read_to_string("config.json") {
@@ -820,7 +820,7 @@ impl FileUtils {
     ///
     /// // Leitura com processamento de erro específico
     /// fn ler_configuracao() -> Result<String, Box<dyn std::error::Error>> {
-    ///     let utils = FileUtils::new();
+    ///     let utils = Archivus::new();
     ///     
     ///     if !utils.file_exists("config.txt") {
     ///         return Err("Arquivo de configuração não encontrado".into());
@@ -863,7 +863,7 @@ impl FileUtils {
     /// - Processamento de arquivos de texto pequenos/médios
     /// - Leitura de templates HTML/CSS
     /// - Carregamento de dados CSV simples
-    pub fn read_to_string<P: AsRef<Path>>(&self, path: P) -> Result<String, FileUtilsError> {
+    pub fn read_to_string<P: AsRef<Path>>(&self, path: P) -> Result<String, ArchivusError> {
         Ok(fs::read_to_string(path)?)
     }
 
@@ -878,13 +878,13 @@ impl FileUtils {
     ///
     /// # Retorna
     /// * `Ok(Vec<u8>)` - Os bytes do arquivo
-    /// * `Err(FileUtilsError)` - Se houve erro ao ler o arquivo
+    /// * `Err(ArchivusError)` - Se houve erro ao ler o arquivo
     ///
     /// # Exemplos
     /// ```rust
-    /// use archivus::FileUtils;
+    /// use archivus::Archivus;
     ///
-    /// let utils = FileUtils::new();
+    /// let utils = Archivus::new();
     ///
     /// // Leitura de arquivo binário (imagem)
     /// match utils.read_to_bytes("logo.png") {
@@ -908,7 +908,7 @@ impl FileUtils {
     ///
     /// // Análise de arquivo
     /// fn analisar_arquivo(caminho: &str) -> Result<(), Box<dyn std::error::Error>> {
-    ///     let utils = FileUtils::new();
+    ///     let utils = Archivus::new();
     ///     let bytes = utils.read_to_bytes(caminho)?;
     ///     
     ///     println!("Análise do arquivo '{}':", caminho);
@@ -953,22 +953,22 @@ impl FileUtils {
     /// - Não falha com dados não-UTF-8
     /// - Preserva dados binários exatos
     /// - Útil para verificação de checksums
-    pub fn read_to_bytes<P: AsRef<Path>>(&self, path: P) -> Result<Vec<u8>, FileUtilsError> {
+    pub fn read_to_bytes<P: AsRef<Path>>(&self, path: P) -> Result<Vec<u8>, ArchivusError> {
         Ok(fs::read(path)?)
     }
 
     /// Escreve uma string para um arquivo
-    pub fn write_string<P: AsRef<Path>>(&self, path: P, content: &str) -> Result<(), FileUtilsError> {
+    pub fn write_string<P: AsRef<Path>>(&self, path: P, content: &str) -> Result<(), ArchivusError> {
         Ok(fs::write(path, content)?)
     }
 
     /// Escreve bytes para um arquivo
-    pub fn write_bytes<P: AsRef<Path>>(&self, path: P, content: &[u8]) -> Result<(), FileUtilsError> {
+    pub fn write_bytes<P: AsRef<Path>>(&self, path: P, content: &[u8]) -> Result<(), ArchivusError> {
         Ok(fs::write(path, content)?)
     }
 
     /// Anexa conteúdo ao final de um arquivo
-    pub fn append_string<P: AsRef<Path>>(&self, path: P, content: &str) -> Result<(), FileUtilsError> {
+    pub fn append_string<P: AsRef<Path>>(&self, path: P, content: &str) -> Result<(), ArchivusError> {
         use std::fs::OpenOptions;
         use std::io::Write;
 
@@ -986,32 +986,32 @@ impl FileUtils {
     // ================================================================
 
     /// Cria um diretório (e todos os diretórios pais se necessário)
-    pub fn create_directory<P: AsRef<Path>>(&self, path: P) -> Result<(), FileUtilsError> {
+    pub fn create_directory<P: AsRef<Path>>(&self, path: P) -> Result<(), ArchivusError> {
         Ok(fs::create_dir_all(path)?)
     }
 
     /// Remove um arquivo
-    pub fn remove_file<P: AsRef<Path>>(&self, path: P) -> Result<(), FileUtilsError> {
+    pub fn remove_file<P: AsRef<Path>>(&self, path: P) -> Result<(), ArchivusError> {
         Ok(fs::remove_file(path)?)
     }
 
     /// Remove um diretório (deve estar vazio)
-    pub fn remove_directory<P: AsRef<Path>>(&self, path: P) -> Result<(), FileUtilsError> {
+    pub fn remove_directory<P: AsRef<Path>>(&self, path: P) -> Result<(), ArchivusError> {
         Ok(fs::remove_dir(path)?)
     }
 
     /// Remove um diretório e todo seu conteúdo recursivamente
-    pub fn remove_directory_recursive<P: AsRef<Path>>(&self, path: P) -> Result<(), FileUtilsError> {
+    pub fn remove_directory_recursive<P: AsRef<Path>>(&self, path: P) -> Result<(), ArchivusError> {
         Ok(fs::remove_dir_all(path)?)
     }
 
     /// Copia um arquivo
-    pub fn copy_file<P: AsRef<Path>, Q: AsRef<Path>>(&self, from: P, to: Q) -> Result<u64, FileUtilsError> {
+    pub fn copy_file<P: AsRef<Path>, Q: AsRef<Path>>(&self, from: P, to: Q) -> Result<u64, ArchivusError> {
         Ok(fs::copy(from, to)?)
     }
 
     /// Move/renomeia um arquivo ou diretório
-    pub fn move_item<P: AsRef<Path>, Q: AsRef<Path>>(&self, from: P, to: Q) -> Result<(), FileUtilsError> {
+    pub fn move_item<P: AsRef<Path>, Q: AsRef<Path>>(&self, from: P, to: Q) -> Result<(), ArchivusError> {
         Ok(fs::rename(from, to)?)
     }
 
@@ -1020,7 +1020,7 @@ impl FileUtils {
     // ================================================================
 
     /// Obtém o tamanho total de um diretório (recursivamente)
-    pub fn directory_size<P: AsRef<Path>>(&self, path: P) -> Result<u64, FileUtilsError> {
+    pub fn directory_size<P: AsRef<Path>>(&self, path: P) -> Result<u64, ArchivusError> {
         let files = self.list_with_filter(path, &FileFilter {
             include_files: true,
             include_directories: false,
@@ -1032,7 +1032,7 @@ impl FileUtils {
     }
 
     /// Conta quantos arquivos existem em um diretório
-    pub fn count_files<P: AsRef<Path>>(&self, path: P, recursive: bool) -> Result<usize, FileUtilsError> {
+    pub fn count_files<P: AsRef<Path>>(&self, path: P, recursive: bool) -> Result<usize, ArchivusError> {
         let files = self.list_with_filter(path, &FileFilter {
             include_files: true,
             include_directories: false,
@@ -1044,7 +1044,7 @@ impl FileUtils {
     }
 
     /// Conta quantos diretórios existem em um diretório
-    pub fn count_directories<P: AsRef<Path>>(&self, path: P, recursive: bool) -> Result<usize, FileUtilsError> {
+    pub fn count_directories<P: AsRef<Path>>(&self, path: P, recursive: bool) -> Result<usize, ArchivusError> {
         let directories = self.list_with_filter(path, &FileFilter {
             include_files: false,
             include_directories: true,
@@ -1056,7 +1056,7 @@ impl FileUtils {
     }
 
     /// Obtém estatísticas de um diretório
-    pub fn directory_stats<P: AsRef<Path>>(&self, path: P) -> Result<DirectoryStats, FileUtilsError> {
+    pub fn directory_stats<P: AsRef<Path>>(&self, path: P) -> Result<DirectoryStats, ArchivusError> {
         let all_items = self.list_with_filter(path, &FileFilter {
             recursive: true,
             ..Default::default()
@@ -1169,7 +1169,7 @@ pub fn format_bytes(bytes: u64) -> String {
 // IMPLEMENTAÇÃO DEFAULT
 // ================================================================
 
-impl Default for FileUtils {
+impl Default for Archivus {
     fn default() -> Self {
         Self::new()
     }
@@ -1187,7 +1187,7 @@ mod tests {
 
     #[test]
     fn test_file_exists() {
-        let utils = FileUtils::new();
+        let utils = Archivus::new();
 
         // Cria um arquivo temporário para teste
         let test_file = "test_file.txt";
@@ -1211,7 +1211,7 @@ mod tests {
 
     #[test]
     fn test_wildcard_match() {
-        let utils = FileUtils::new();
+        let utils = Archivus::new();
 
         assert!(utils.matches_pattern("test.txt", "*.txt"));
         assert!(utils.matches_pattern("arquivo.rs", "*.rs"));
