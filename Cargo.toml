@@ -3,6 +3,10 @@ name = "archivus"
 version = "0.1.0"
 edition = "2024"
 license = "MIT"
-
+description = "Uma biblioteca utilitária para manipulação e leitura de arquivos e diretórios em Rust."
+repository = "https://github.com/lugotardo/archivus"
+readme = "README.md"
+keywords = ["filesystem", "rust", "utils", "io", "files"]
+categories = ["filesystem", "command-line-utilities"]
 
 [dependencies]
