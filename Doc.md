@@ -1,12 +1,12 @@
-# FileUtils - Biblioteca de Utilitários de Arquivo em Rust
+# Archivus - Biblioteca de Utilitários de Arquivo em Rust
 
-`FileUtils` é uma biblioteca abrangente para manipulação de arquivos e diretórios em Rust, projetada para simplificar operações comuns de I/O, validação, listagem e busca de arquivos. Esta documentação fornece uma visão geral das funcionalidades, exemplos de uso e detalhes técnicos da biblioteca.
+`Archivus` é uma biblioteca abrangente para manipulação de arquivos e diretórios em Rust, projetada para simplificar operações comuns de I/O, validação, listagem e busca de arquivos. Esta documentação fornece uma visão geral das funcionalidades, exemplos de uso e detalhes técnicos da biblioteca.
 
 ## Índice
 
 1. [Visão Geral](#visão-geral)
 2. [Estruturas e Enums](#estruturas-e-enums)
-    - [FileUtilsError](#fileutilserror)
+    - [ArchivusError](#fileutilserror)
     - [FileInfo](#fileinfo)
     - [FileFilter](#filefilter)
     - [DirectoryStats](#directorystats)
@@ -25,7 +25,7 @@
 
 ## Visão Geral
 
-A biblioteca `FileUtils` fornece uma interface simplificada para operações com arquivos e diretórios, incluindo validação, listagem, busca e manipulação de conteúdo. Todas as operações retornam resultados encapsulados em `Result` com o tipo de erro personalizado `FileUtilsError`, garantindo tratamento robusto de erros.
+A biblioteca `Archivus` fornece uma interface simplificada para operações com arquivos e diretórios, incluindo validação, listagem, busca e manipulação de conteúdo. Todas as operações retornam resultados encapsulados em `Result` com o tipo de erro personalizado `ArchivusError`, garantindo tratamento robusto de erros.
 
 A biblioteca é projetada para ser:
 - **Segura**: Manipulação de erros detalhada com enums personalizados.
@@ -35,12 +35,12 @@ A biblioteca é projetada para ser:
 
 ## Estruturas e Enums
 
-### FileUtilsError
+### ArchivusError
 
 Enum que representa diferentes tipos de erro que podem ocorrer durante operações de arquivo.
 
 ```rust
-pub enum FileUtilsError {
+pub enum ArchivusError {
     NotFound(String),
     PermissionDenied(String),
     IoError(String),
@@ -166,7 +166,7 @@ pub struct DirectoryStats {
 ### Verificar Existência de Arquivo
 
 ```rust
-let utils = FileUtils::new();
+let utils = Archivus::new();
 if utils.file_exists("config.json") {
     println!("Arquivo de configuração encontrado!");
 }
@@ -175,7 +175,7 @@ if utils.file_exists("config.json") {
 ### Listar e Processar Arquivos
 
 ```rust
-let utils = FileUtils::new();
+let utils = Archivus::new();
 match utils.list_files(".") {
     Ok(arquivos) => {
         for arquivo in arquivos {
@@ -189,7 +189,7 @@ match utils.list_files(".") {
 ### Busca com Filtro
 
 ```rust
-let utils = FileUtils::new();
+let utils = Archivus::new();
 let filter = FileFilter {
     extensions: Some(vec!["jpg".to_string(), "png".to_string()]),
     min_size: Some(1024),
@@ -205,7 +205,7 @@ for imagem in imagens {
 ### Leitura e Escrita
 
 ```rust
-let utils = FileUtils::new();
+let utils = Archivus::new();
 if let Ok(conteudo) = utils.read_to_string("config.txt") {
     let novo_conteudo = conteudo + "\nNovo dado";
     utils.write_string("config.txt", &novo_conteudo)?;
